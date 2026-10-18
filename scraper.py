@@ -258,6 +258,21 @@ def post_message(text: str):
         requests.post(url, json={"text": text}, timeout=30).raise_for_status()
 
 
+def push_bot_data(data, old_hash):
+    """Отправляет в Make готовые ответы на команды бота, если они изменились."""
+    from botdata import build_bot_payload, payload_hash
+    try:
+        payload = build_bot_payload(data, NOW)
+        new_hash = payload_hash(payload)
+        if new_hash != old_hash and os.environ.get("MAKE_WEBHOOK_URL"):
+            requests.post(os.environ["MAKE_WEBHOOK_URL"], json={"bot_data": payload}, timeout=60).raise_for_status()
+            print("Ответы для команд бота обновлены")
+        return new_hash
+    except Exception as e:  # noqa: BLE001
+        print("Не удалось обновить ответы для команд:", e)
+        return old_hash
+
+
 def notify_failure(message: str):
     url = os.environ.get("MAKE_WEBHOOK_URL")
     if url:
@@ -298,6 +313,7 @@ def main():
         "exams": [t for t in tasks if t["kind"] == "exam"],
         "periods": periods,
     }
+    data["bot_hash"] = push_bot_data(data, previous.get("bot_hash"))
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     print(f"data.json сохранён: {len(classes)} занятий, {len(tasks)} заданий, {len(periods)} периодов")
