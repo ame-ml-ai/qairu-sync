@@ -1,0 +1,30 @@
+name: QAIRU notify
+
+on:
+  schedule:
+    # UTC. Каждые 30 минут с 06:00 до 16:30 по Астане (напоминания за 2 часа до пар)
+    - cron: "0,30 1-11 * * *"
+    # 22:00 по Астане — вечерняя сводка
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "auto — как по расписанию, summary — сводка сейчас, test — тестовое сообщение"
+        type: choice
+        options: [test, summary, auto]
+        default: test
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Send messages
+        env:
+          MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
+          MODE: ${{ inputs.mode || 'auto' }}
+        run: python notify.py
