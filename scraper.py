@@ -12,6 +12,7 @@ import os
 import re
 import time
 from datetime import datetime, timedelta, timezone
+from html import escape
 
 import requests
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -218,6 +219,45 @@ def scrape_calendar(page):
     return periods
 
 
+# ---------- Уведомления кабинета ----------
+
+def fetch_notifications(page):
+    """Колокольчик в кабинете: JSON {items: [{id, title, message, createdAt, ...}]}."""
+    resp = page.request.get(BASE + "/api/notifications?lang=ru", timeout=60_000)
+    if not resp.ok:
+        print("Уведомления недоступны:", resp.status)
+        return None
+    items = resp.json().get("items", [])
+    print(f"Уведомлений в кабинете: {len(items)}")
+    return items
+
+
+def send_new_notifications(items, last_id):
+    """Отправляет уведомления новее last_id. Возвращает новый last_id."""
+    if items is None:
+        return last_id
+    max_id = max((n["id"] for n in items), default=last_id or 0)
+    if last_id is None:
+        # Первый запуск: не заваливаем старыми, шлём только непрочитанные (до 5)
+        fresh = [n for n in items if not n.get("read")][:5]
+    else:
+        fresh = [n for n in items if n["id"] > last_id]
+    for n in sorted(fresh, key=lambda x: x["id"])[-10:]:
+        created = datetime.fromisoformat(n["createdAt"][:19]).replace(tzinfo=timezone.utc).astimezone(TZ)
+        text = (f"🔔 <b>{escape(n.get('title') or 'Уведомление')}</b>  <i>{created:%d.%m %H:%M}</i>\n"
+                f"{escape((n.get('message') or '')[:800])}\n"
+                f'<a href="{BASE}/ru">Открыть кабинет</a>')
+        post_message(text)
+    print(f"Отправлено новых уведомлений: {len(fresh)}")
+    return max(max_id, last_id or 0)
+
+
+def post_message(text: str):
+    url = os.environ.get("MAKE_WEBHOOK_URL")
+    if url:
+        requests.post(url, json={"text": text}, timeout=30).raise_for_status()
+
+
 def notify_failure(message: str):
     url = os.environ.get("MAKE_WEBHOOK_URL")
     if url:
@@ -228,6 +268,10 @@ def notify_failure(message: str):
 
 
 def main():
+    previous = {}
+    if os.path.exists("data.json"):
+        with open("data.json", encoding="utf-8") as f:
+            previous = json.load(f)
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -236,6 +280,7 @@ def main():
             classes = scrape_schedule(page)
             tasks = scrape_assignments(page)
             periods = scrape_calendar(page)
+            notifications = fetch_notifications(page)
             browser.close()
         if not classes:
             raise RuntimeError("Расписание пустое, data.json не обновлён")
@@ -243,7 +288,10 @@ def main():
         notify_failure(str(e)[:300])
         raise
 
+    last_id = send_new_notifications(notifications, previous.get("last_notification_id"))
+
     data = {
+        "last_notification_id": last_id,
         "synced_at": NOW.isoformat(),
         "classes": classes,
         "deadlines": [t for t in tasks if t["kind"] == "deadline"],
