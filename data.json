@@ -1,5 +1,5 @@
 {
-  "synced_at": "2026-10-18T16:27:32.398424+05:00",
+  "synced_at": "2026-10-18T16:32:08.675008+05:00",
   "classes": [
     {
       "kind": "class",
@@ -112,16 +112,7 @@
       "key": "class-sat-1"
     }
   ],
-  "deadlines": [
-    {
-      "key": "a-8f57789f",
-      "kind": "deadline",
-      "title": "Lab #5",
-      "subject": "Информационно-коммуникационные технологии",
-      "status": "",
-      "date": "2026-10-18T23:59:00+05:00"
-    }
-  ],
+  "deadlines": [],
   "exams": [],
   "periods": [
     {
