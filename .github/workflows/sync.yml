@@ -1,0 +1,28 @@
+name: QAIRU sync
+
+on:
+  schedule:
+    # Время в UTC. Казахстан = UTC+5 → запуски в 06:00 и 14:00 по Астане
+    - cron: "0 1 * * *"
+    - cron: "0 9 * * *"
+  workflow_dispatch: {}   # кнопка «Run workflow» для ручного запуска
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Scrape campus.qairu and push to Make
+        env:
+          QAIRU_LOGIN: ${{ secrets.QAIRU_LOGIN }}
+          QAIRU_PASSWORD: ${{ secrets.QAIRU_PASSWORD }}
+          MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
+        run: python scraper.py
