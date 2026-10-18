@@ -1,16 +1,15 @@
 """
 QAIRU sync: входит в campus.qairu.edu.kz, собирает расписание, задания с дедлайнами
-и даты сессии из академического календаря, и отправляет всё одним JSON в вебхук Make.
+и академический календарь (занятия, сессия, праздники) и сохраняет всё в data.json.
+Сообщения в Telegram отправляет отдельный скрипт notify.py.
 
 Переменные окружения (в GitHub Actions задаются как Secrets):
-  QAIRU_LOGIN, QAIRU_PASSWORD, MAKE_WEBHOOK_URL
-Для локального теста без отправки:  DRY_RUN=1 python scraper.py
+  QAIRU_LOGIN, QAIRU_PASSWORD, MAKE_WEBHOOK_URL (для уведомления, если синхронизация упала)
 """
 
 import json
 import os
 import re
-import sys
 import time
 from datetime import datetime, timedelta, timezone
 
@@ -178,49 +177,74 @@ def scrape_assignments(page):
 
 # ---------- Академический календарь ----------
 
-RANGE_RE = re.compile(
-    r"Сессия\s*\n\s*(\d{1,2})(?:\s+([а-яё]+))?\s*[–-]\s*(\d{1,2})\s+([а-яё]+)", re.I)
+# «7 сентября – 14 ноября», «16–28 ноября», «16 декабря», «30 ноября – 12 декабря»
+SP = r"[ \u00a0]"  # только пробелы, без переводов строки
+RANGE = r"(\d{1,2})(?:" + SP + r"+([а-яё]+))?(?:" + SP + r"*[–-]" + SP + r"*(\d{1,2}))?" + SP + r"+([а-яё]+)"
+LABELLED_RE = re.compile(r"(Занятия|Сессия)\s*\n\s*" + RANGE, re.I)
+HOLIDAY_RE = re.compile(RANGE + r"\s*\n\s*([^\n]+)", re.I)
+
+
+def to_range(d1, mon1, d2, mon2):
+    start = make_date(int(d1), month_num(mon1 or mon2))
+    end = make_date(int(d2 or d1), month_num(mon2))
+    return start.date().isoformat(), end.date().isoformat()
 
 
 def scrape_calendar(page):
     goto(page, "/ru/academic-calendar")
     text = page.locator("main").inner_text()
-    records = []
-    for i, m in enumerate(RANGE_RE.finditer(text), start=1):
-        d1, mon1, d2, mon2 = m.groups()
-        start = make_date(int(d1), month_num(mon1 or mon2))
-        end = make_date(int(d2), month_num(mon2))
-        if end < NOW:
-            continue
-        records.append({
-            "key": f"exam-session-t{i}",
-            "kind": "exam",
-            "title": f"Сессия {i} триместра ({start:%d.%m}–{end:%d.%m})",
-            "date": start.isoformat(),
-        })
-    print(f"Будущих сессий: {len(records)}")
-    return records
+    periods = []
+    for m in LABELLED_RE.finditer(text):
+        label, *rng = m.groups()
+        start, end = to_range(*rng)
+        periods.append({"type": "classes" if label.lower() == "занятия" else "session",
+                        "title": label.capitalize(), "start": start, "end": end})
+    # Праздники: блоки после «ПРАЗДНИКИ И КАНИКУЛЫ» до следующего триместра
+    for block in re.split(r"ПРАЗДНИКИ И КАНИКУЛЫ", text, flags=re.I)[1:]:
+        block = re.split(r"\n\d\s*триместр", block)[0]
+        for m in HOLIDAY_RE.finditer(block):
+            *rng, title = m.groups()
+            start, end = to_range(*rng)
+            periods.append({"type": "holiday", "title": title.strip(), "start": start, "end": end})
+    print(f"Периодов в календаре: {len(periods)}")
+    return periods
+
+
+def notify_failure(message: str):
+    url = os.environ.get("MAKE_WEBHOOK_URL")
+    if url:
+        try:
+            requests.post(url, json={"text": f"⚠️ <b>Синхронизация с campus.qairu не удалась</b>\n{message}"}, timeout=30)
+        except Exception as e:  # noqa: BLE001
+            print("Не удалось отправить уведомление об ошибке:", e)
 
 
 def main():
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page(locale="ru-RU", timezone_id="Asia/Almaty")
-        login(page)
-        records = scrape_schedule(page) + scrape_assignments(page) + scrape_calendar(page)
-        browser.close()
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page(locale="ru-RU", timezone_id="Asia/Almaty")
+            login(page)
+            classes = scrape_schedule(page)
+            tasks = scrape_assignments(page)
+            periods = scrape_calendar(page)
+            browser.close()
+        if not classes:
+            raise RuntimeError("Расписание пустое, data.json не обновлён")
+    except Exception as e:
+        notify_failure(str(e)[:300])
+        raise
 
-    if not any(r["kind"] == "class" for r in records):
-        # Защита: не затираем базу пустыми данными, если что-то пошло не так
-        sys.exit("Расписание пустое, отправка отменена")
-
-    payload = {"synced_at": NOW.isoformat(), "records": records}
-    if os.environ.get("DRY_RUN"):
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
-        return
-    r = requests.post(os.environ["MAKE_WEBHOOK_URL"], json=payload, timeout=60)
-    r.raise_for_status()
-    print(f"Отправлено в Make: {len(records)} записей, ответ: {r.text}")
+    data = {
+        "synced_at": NOW.isoformat(),
+        "classes": classes,
+        "deadlines": [t for t in tasks if t["kind"] == "deadline"],
+        "exams": [t for t in tasks if t["kind"] == "exam"],
+        "periods": periods,
+    }
+    with open("data.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"data.json сохранён: {len(classes)} занятий, {len(tasks)} заданий, {len(periods)} периодов")
 
 
 if __name__ == "__main__":
