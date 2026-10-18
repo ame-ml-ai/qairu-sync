@@ -2,10 +2,10 @@ name: QAIRU notify
 
 on:
   schedule:
-    # UTC. Каждые 30 минут с 06:00 до 16:30 по Астане (напоминания за 2 часа до пар)
-    - cron: "0,30 1-11 * * *"
-    # 22:00 по Астане — вечерняя сводка
-    - cron: "0 17 * * *"
+    # UTC (Астана = UTC+5). Не ровно в :00/:30 — в это время GitHub чаще пропускает запуски.
+    - cron: "7,37 1-12 * * *"    # 06:07–17:37 — напоминания о парах
+    - cron: "7,27,47 17 * * *"   # 22:07, 22:27, 22:47 — вечерняя сводка (с запасом)
+    - cron: "7 18 * * *"         # 23:07 — последний шанс для сводки
   workflow_dispatch:
     inputs:
       mode:
@@ -13,6 +13,9 @@ on:
         type: choice
         options: [test, summary, auto]
         default: test
+
+permissions:
+  contents: write   # чтобы сохранить sent.json (что уже отправлено)
 
 jobs:
   notify:
@@ -28,3 +31,12 @@ jobs:
           MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
           MODE: ${{ inputs.mode || 'auto' }}
         run: python notify.py
+      - name: Save sent.json
+        run: |
+          [ -f sent.json ] || exit 0
+          git config user.name "qairu-bot"
+          git config user.email "qairu-bot@users.noreply.github.com"
+          git add sent.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update sent.json"
+          for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
