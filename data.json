@@ -1,0 +1,236 @@
+{
+  "synced_at": "2026-10-18T16:15:03.043622+05:00",
+  "classes": [
+    {
+      "kind": "class",
+      "weekday": 1,
+      "start": "12:10",
+      "end": "14:00",
+      "subject": "Введение в программирование",
+      "lesson_type": "Лекция",
+      "room": "ATRIUM",
+      "teacher": "Ansar Berdiqozha",
+      "key": "class-mon-1"
+    },
+    {
+      "kind": "class",
+      "weekday": 1,
+      "start": "14:20",
+      "end": "17:10",
+      "subject": "Основы математического анализа",
+      "lesson_type": "Лекция",
+      "room": "224",
+      "teacher": "Ansar Berdiqozha",
+      "key": "class-mon-2"
+    },
+    {
+      "kind": "class",
+      "weekday": 2,
+      "start": "08:00",
+      "end": "10:50",
+      "subject": "Введение в программирование",
+      "lesson_type": "Практика 7",
+      "room": "ALEM-CW-A",
+      "teacher": "Дильнура Алиқызы",
+      "key": "class-tue-1"
+    },
+    {
+      "kind": "class",
+      "weekday": 2,
+      "start": "12:10",
+      "end": "14:00",
+      "subject": "Основы искусственного интеллекта",
+      "lesson_type": "Лекция",
+      "room": "ATRIUM",
+      "teacher": "Gulzhan Uskenbayeva",
+      "key": "class-tue-2"
+    },
+    {
+      "kind": "class",
+      "weekday": 3,
+      "start": "11:10",
+      "end": "14:00",
+      "subject": "Информационно-коммуникационные технологии",
+      "lesson_type": "Лекция",
+      "room": "ATRIUM",
+      "teacher": "Альфараби Имашев",
+      "key": "class-wed-1"
+    },
+    {
+      "kind": "class",
+      "weekday": 3,
+      "start": "16:20",
+      "end": "19:20",
+      "subject": "История Казахстана",
+      "lesson_type": "Практика 5",
+      "room": "222",
+      "teacher": "Assel Auzhanova",
+      "key": "class-wed-2"
+    },
+    {
+      "kind": "class",
+      "weekday": 4,
+      "start": "17:30",
+      "end": "19:20",
+      "subject": "Основы математического анализа",
+      "lesson_type": "Практика 1",
+      "room": "223",
+      "teacher": "Ansar Berdiqozha",
+      "key": "class-thu-1"
+    },
+    {
+      "kind": "class",
+      "weekday": 5,
+      "start": "15:20",
+      "end": "17:10",
+      "subject": "Основы искусственного интеллекта",
+      "lesson_type": "Практика 3",
+      "room": "101",
+      "teacher": "Gulzhan Uskenbayeva",
+      "key": "class-fri-1"
+    },
+    {
+      "kind": "class",
+      "weekday": 5,
+      "start": "17:30",
+      "end": "19:20",
+      "subject": "Информационно-коммуникационные технологии",
+      "lesson_type": "Практика 1",
+      "room": "204",
+      "teacher": "Олжас Шортанбайұлы",
+      "key": "class-fri-2"
+    },
+    {
+      "kind": "class",
+      "weekday": 6,
+      "start": "08:00",
+      "end": "09:50",
+      "subject": "История Казахстана",
+      "lesson_type": "Лекция",
+      "room": "Онлайн",
+      "teacher": "Assel Auzhanova",
+      "key": "class-sat-1"
+    }
+  ],
+  "deadlines": [
+    {
+      "key": "a-8f57789f",
+      "kind": "deadline",
+      "title": "Lab #5",
+      "subject": "Информационно-коммуникационные технологии",
+      "status": "",
+      "date": "2026-10-18T23:59:00+05:00"
+    }
+  ],
+  "exams": [],
+  "periods": [
+    {
+      "type": "classes",
+      "title": "Занятия",
+      "start": "2026-09-07",
+      "end": "2026-11-14"
+    },
+    {
+      "type": "session",
+      "title": "Сессия",
+      "start": "2026-11-16",
+      "end": "2026-11-28"
+    },
+    {
+      "type": "classes",
+      "title": "Занятия",
+      "start": "2026-12-14",
+      "end": "2027-02-20"
+    },
+    {
+      "type": "session",
+      "title": "Сессия",
+      "start": "2027-02-22",
+      "end": "2027-03-06"
+    },
+    {
+      "type": "classes",
+      "title": "Занятия",
+      "start": "2027-03-16",
+      "end": "2027-05-22"
+    },
+    {
+      "type": "session",
+      "title": "Сессия",
+      "start": "2027-05-24",
+      "end": "2027-06-05"
+    },
+    {
+      "type": "holiday",
+      "title": "День Республики",
+      "start": "2026-10-25",
+      "end": "2026-10-26"
+    },
+    {
+      "type": "holiday",
+      "title": "Каникулы",
+      "start": "2026-11-30",
+      "end": "2026-12-12"
+    },
+    {
+      "type": "holiday",
+      "title": "День Независимости",
+      "start": "2026-12-16",
+      "end": "2026-12-16"
+    },
+    {
+      "type": "holiday",
+      "title": "Новый год",
+      "start": "2027-01-01",
+      "end": "2027-01-02"
+    },
+    {
+      "type": "holiday",
+      "title": "Рождество",
+      "start": "2027-01-07",
+      "end": "2027-01-07"
+    },
+    {
+      "type": "holiday",
+      "title": "Международный женский день",
+      "start": "2027-03-08",
+      "end": "2027-03-08"
+    },
+    {
+      "type": "holiday",
+      "title": "Каникулы",
+      "start": "2027-03-09",
+      "end": "2027-03-13"
+    },
+    {
+      "type": "holiday",
+      "title": "Наурыз",
+      "start": "2027-03-22",
+      "end": "2027-03-23"
+    },
+    {
+      "type": "holiday",
+      "title": "Праздник единства народа Казахстана",
+      "start": "2027-05-01",
+      "end": "2027-05-01"
+    },
+    {
+      "type": "holiday",
+      "title": "День защитника Отечества",
+      "start": "2027-05-07",
+      "end": "2027-05-07"
+    },
+    {
+      "type": "holiday",
+      "title": "День Победы",
+      "start": "2027-05-09",
+      "end": "2027-05-09"
+    },
+    {
+      "type": "holiday",
+      "title": "Каникулы",
+      "start": "2027-06-28",
+      "end": "2027-08-31"
+    }
+  ]
+}
