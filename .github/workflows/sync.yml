@@ -5,7 +5,14 @@ on:
     # Время в UTC. Казахстан = UTC+5 → запуски в 06:00 и 14:00 по Астане
     - cron: "0 1 * * *"
     - cron: "0 9 * * *"
-  workflow_dispatch: {}   # кнопка «Run workflow» для ручного запуска
+  workflow_dispatch: {}
+
+permissions:
+  contents: write   # чтобы сохранить data.json в репозиторий
+
+concurrency:
+  group: qairu-data
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -20,9 +27,16 @@ jobs:
         run: |
           pip install -r requirements.txt
           python -m playwright install --with-deps chromium
-      - name: Scrape campus.qairu and push to Make
+      - name: Scrape campus.qairu
         env:
           QAIRU_LOGIN: ${{ secrets.QAIRU_LOGIN }}
           QAIRU_PASSWORD: ${{ secrets.QAIRU_PASSWORD }}
           MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
         run: python scraper.py
+      - name: Save data.json
+        run: |
+          git config user.name "qairu-bot"
+          git config user.email "qairu-bot@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet || git commit -m "Update data.json"
+          git push
