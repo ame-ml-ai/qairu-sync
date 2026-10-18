@@ -136,7 +136,8 @@ def minutes(hhmm: str) -> int:
 # ---------- Задания ----------
 
 DONE_STATUSES = {"Оценено", "На проверке", "Сдано", "Проверено"}
-SUBMITTED_RE = re.compile(r"Ваша работа\s*\n?\s*(Оценено|На проверке|Сдано|Проверено)", re.I)
+SUBMITTED_RE = re.compile(
+    r"Ваша работа.{0,40}?(на проверке|оценено|сдано|проверено)|Отправлено\s+\d{1,2}\s+[а-яё]+", re.I | re.S)
 DUE_RE = re.compile(r"до\s+(\d{1,2})\s+([а-яё]+)(?:,\s*(\d{1,2}):(\d{2}))?", re.I)
 
 
@@ -145,7 +146,9 @@ def scrape_assignments(page):
     page.wait_for_selector('main a[href*="/assignments/"]', timeout=30_000)
     cards = []
     for a in page.locator('main a[href*="/assignments/"]').all():
-        lines = [l.strip() for l in a.inner_text().split("\n") if l.strip()]
+        # статус («На проверке», «Оценено»…) лежит рядом со ссылкой, поэтому берём текст родителя
+        card_text = a.evaluate("el => el.parentElement.innerText")
+        lines = [l.strip() for l in card_text.split("\n") if l.strip()]
         href = a.get_attribute("href")
         if lines and href:
             cards.append({"href": href, "lines": lines})
