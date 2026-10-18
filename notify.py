@@ -4,8 +4,9 @@ QAIRU notify: читает data.json и отправляет сообщения 
 - 22:00 — сводка на завтра: пары, дедлайны на 7 дней, сколько дней до экзаменов и сессии.
 - За 2 часа до каждого блока пар — напоминание.
 
-GitHub Actions запускает скрипт каждые 30 минут. Скрипт округляет текущее время вниз
-до получаса («слот»), поэтому задержка запуска GitHub до ~25 минут ничего не ломает.
+GitHub Actions запускает скрипт часто, но может опаздывать или пропускать запуски.
+Поэтому скрипт отправляет всё, что уже «должно было» уйти, и запоминает отправленное
+в sent.json, чтобы не было дублей.
 
 Переменные окружения: MAKE_WEBHOOK_URL
   MODE=auto (по умолчанию) | summary (сводка сейчас) | test (тестовое сообщение)
@@ -21,7 +22,6 @@ from html import escape
 TZ = timezone(timedelta(hours=5))
 SUMMARY_TIME = (22, 0)          # время вечерней сводки
 REMIND_BEFORE = timedelta(hours=2)
-SLOT = timedelta(minutes=30)
 DEADLINE_WINDOW_DAYS = 7
 
 WEEKDAYS = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
@@ -125,18 +125,43 @@ def build_summary(data, now: datetime) -> str:
     return "\n".join(lines)
 
 
-def build_reminders(data, slot_start: datetime):
-    """Напоминания о парах, у которых момент «за 2 часа» попадает в текущий слот."""
-    msgs = []
-    for day in (slot_start.date(), slot_start.date() + timedelta(days=1)):
-        for c in classes_on(data, day):
-            h, m = map(int, c["start"].split(":"))
-            start = datetime(day.year, day.month, day.day, h, m, tzinfo=TZ)
-            remind_at = start - REMIND_BEFORE
-            if slot_start <= remind_at < slot_start + SLOT:
-                msgs.append(f"🔔 <b>Через 2 часа пара</b>\n{class_line(c)}\n"
-                            f"👤 {escape(c.get('teacher', ''))}")
-    return msgs
+STATE_FILE = "sent.json"
+
+
+def load_state():
+    try:
+        with open(STATE_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"summary": "", "reminders": []}
+
+
+def save_state(state):
+    with open(STATE_FILE, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+
+
+def human_delta(minutes: int) -> str:
+    h, m = divmod(minutes, 60)
+    if h and m:
+        return f"{h} ч {m} мин"
+    return f"{h} ч" if h else f"{m} мин"
+
+
+def due_reminders(data, now: datetime, state):
+    """Пары, для которых момент «за 2 часа» уже наступил, а пара ещё не началась.
+    Так напоминание придёт, даже если GitHub пропустил нужный запуск."""
+    out = []
+    today = now.date()
+    for c in classes_on(data, today):
+        h, m = map(int, c["start"].split(":"))
+        start = datetime(today.year, today.month, today.day, h, m, tzinfo=TZ)
+        key = f"{today.isoformat()}-{c['start']}"
+        if start - REMIND_BEFORE <= now < start and key not in state["reminders"]:
+            left = int((start - now).total_seconds() // 60)
+            out.append((key, f"🔔 <b>Через {human_delta(left)} пара</b>\n{class_line(c)}\n"
+                             f"👤 {escape(c.get('teacher', ''))}"))
+    return out
 
 
 def main():
@@ -153,13 +178,23 @@ def main():
         send(build_summary(data, now))
         return
 
-    # auto: округляем время запуска вниз до получаса
-    slot_start = now.replace(minute=(now.minute // 30) * 30, second=0, microsecond=0)
-    if (slot_start.hour, slot_start.minute) == SUMMARY_TIME:
+    # auto: отправляем всё, что «должно было» уйти и ещё не ушло
+    state = load_state()
+    changed = False
+    today = now.date().isoformat()
+    if (now.hour, now.minute) >= SUMMARY_TIME and state.get("summary") != today:
         send(build_summary(data, now))
-    for msg in build_reminders(data, slot_start):
+        state["summary"] = today
+        changed = True
+    for key, msg in due_reminders(data, now, state):
         send(msg)
-    print(f"Слот {slot_start:%H:%M} обработан")
+        state["reminders"].append(key)
+        changed = True
+    # старые отметки о напоминаниях не нужны
+    state["reminders"] = [k for k in state["reminders"] if k[:10] >= today]
+    if changed:
+        save_state(state)
+    print(f"{now:%H:%M}: проверка завершена, отправлено: {'да' if changed else 'нет'}")
 
 
 if __name__ == "__main__":
