@@ -135,6 +135,8 @@ def minutes(hhmm: str) -> int:
 
 # ---------- Задания ----------
 
+DONE_STATUSES = {"Оценено", "На проверке", "Сдано", "Проверено"}
+SUBMITTED_RE = re.compile(r"Ваша работа\s*\n?\s*(Оценено|На проверке|Сдано|Проверено)", re.I)
 DUE_RE = re.compile(r"до\s+(\d{1,2})\s+([а-яё]+)(?:,\s*(\d{1,2}):(\d{2}))?", re.I)
 
 
@@ -153,10 +155,13 @@ def scrape_assignments(page):
         title = c["lines"][0]
         course = c["lines"][1] if len(c["lines"]) > 1 else ""
         status = c["lines"][2] if len(c["lines"]) > 2 else ""
-        if status == "Оценено":
-            continue  # уже сдано и проверено, напоминать не нужно
+        if status in DONE_STATUSES:
+            continue  # работа уже сдана, напоминать не нужно
         goto(page, c["href"])
-        m = DUE_RE.search(page.locator("main").inner_text())
+        detail = page.locator("main").inner_text()
+        if SUBMITTED_RE.search(detail):
+            continue  # на странице задания видно, что работа сдана
+        m = DUE_RE.search(detail)
         if not m:
             continue
         day, mon, hh, mm = m.groups()
