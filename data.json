@@ -1,6 +1,6 @@
 {
-  "last_notification_id": 27516,
-  "synced_at": "2026-10-31T13:23:09.565047+05:00",
+  "last_notification_id": 27574,
+  "synced_at": "2026-10-31T20:43:00.748728+05:00",
   "classes": [
     {
       "kind": "class",
@@ -91,16 +91,7 @@
       "key": "class-sat-1"
     }
   ],
-  "deadlines": [
-    {
-      "key": "a-a28c967c",
-      "kind": "deadline",
-      "title": "Lab #7",
-      "subject": "Информационно-коммуникационные технологии",
-      "status": "Осталось 1 день",
-      "date": "2026-11-01T23:59:00+05:00"
-    }
-  ],
+  "deadlines": [],
   "exams": [],
   "periods": [
     {
@@ -212,5 +203,5 @@
       "end": "2027-08-31"
     }
   ],
-  "bot_hash": "f9a1cd2158d2bbe4"
+  "bot_hash": "b1027471fa12ac79"
 }
