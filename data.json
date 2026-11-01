@@ -1,6 +1,6 @@
 {
   "last_notification_id": 27574,
-  "synced_at": "2026-11-01T14:12:09.308614+05:00",
+  "synced_at": "2026-11-01T21:47:59.926866+05:00",
   "classes": [
     {
       "kind": "class",
@@ -9,7 +9,7 @@
       "end": "10:50",
       "subject": "Введение в программирование",
       "lesson_type": "Практика 7",
-      "room": "ALEM-CW-A",
+      "room": "226",
       "teacher": "Дильнура Алиқызы",
       "key": "class-tue-1"
     },
@@ -203,5 +203,5 @@
       "end": "2027-08-31"
     }
   ],
-  "bot_hash": "de5e30c09c80a0e1"
+  "bot_hash": "e8343cc690948ace"
 }
