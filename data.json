@@ -1,7 +1,29 @@
 {
   "last_notification_id": 27574,
-  "synced_at": "2026-11-01T21:47:59.926866+05:00",
+  "synced_at": "2026-11-02T02:58:51.457724+05:00",
   "classes": [
+    {
+      "kind": "class",
+      "weekday": 1,
+      "start": "12:10",
+      "end": "14:00",
+      "subject": "Введение в программирование",
+      "lesson_type": "Лекция",
+      "room": "ATRIUM",
+      "teacher": "Ansar Berdiqozha",
+      "key": "class-mon-1"
+    },
+    {
+      "kind": "class",
+      "weekday": 1,
+      "start": "14:20",
+      "end": "17:10",
+      "subject": "Основы математического анализа",
+      "lesson_type": "Лекция",
+      "room": "224",
+      "teacher": "Ansar Berdiqozha",
+      "key": "class-mon-2"
+    },
     {
       "kind": "class",
       "weekday": 2,
@@ -203,5 +225,5 @@
       "end": "2027-08-31"
     }
   ],
-  "bot_hash": "e8343cc690948ace"
+  "bot_hash": "aa722d3363aaa194"
 }
