@@ -1,6 +1,6 @@
 {
-  "last_notification_id": 29265,
-  "synced_at": "2026-11-04T22:58:38.533362+05:00",
+  "last_notification_id": 29641,
+  "synced_at": "2026-11-05T04:39:19.233335+05:00",
   "classes": [
     {
       "kind": "class",
@@ -119,7 +119,7 @@
       "kind": "deadline",
       "title": "Lab #8",
       "subject": "Информационно-коммуникационные технологии",
-      "status": "Осталось 4 дня",
+      "status": "Осталось 3 дня",
       "date": "2026-11-08T23:59:00+05:00"
     }
   ],
@@ -234,5 +234,5 @@
       "end": "2027-08-31"
     }
   ],
-  "bot_hash": "533d58752bb22a5b"
+  "bot_hash": "fa97ad21accbaaf1"
 }
