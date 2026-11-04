@@ -1,6 +1,6 @@
 {
-  "last_notification_id": 29001,
-  "synced_at": "2026-11-04T14:06:09.803629+05:00",
+  "last_notification_id": 29265,
+  "synced_at": "2026-11-04T22:58:38.533362+05:00",
   "classes": [
     {
       "kind": "class",
@@ -114,14 +114,6 @@
     }
   ],
   "deadlines": [
-    {
-      "key": "a-502ec48b",
-      "kind": "deadline",
-      "title": "Investigate and sketch your function",
-      "subject": "Основы математического анализа",
-      "status": "Осталось 2 дня",
-      "date": "2026-11-06T00:00:00+05:00"
-    },
     {
       "key": "a-6197734d",
       "kind": "deadline",
@@ -242,5 +234,5 @@
       "end": "2027-08-31"
     }
   ],
-  "bot_hash": "e4d6c809de439efe"
+  "bot_hash": "533d58752bb22a5b"
 }
